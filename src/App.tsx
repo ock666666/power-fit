@@ -13,7 +13,7 @@ import RefreshGuard from './components/RefreshGuard';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/power-fit">
       <AppProvider>
         <RefreshGuard />
         <GlobalUI />
