@@ -98,8 +98,7 @@ export default function AIPage() {
 
   return (
     <div>
-      <motion.div className="flex items-center gap-3 py-4" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
-        <button onClick={() => navigate(-1)} className="text-foreground/50 hover:text-foreground text-lg">←</button>
+      <motion.div className="text-center py-4" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
         <h2 className="text-xl font-heading font-semibold">🤖 AI推荐 — 智能训练计划</h2>
       </motion.div>
 
