@@ -9,11 +9,13 @@ import AIPage from './pages/AIPage';
 import DietPage from './pages/DietPage';
 import LogPage from './pages/LogPage';
 import GlobalUI from './components/GlobalUI';
+import RefreshGuard from './components/RefreshGuard';
 
 export default function App() {
   return (
     <BrowserRouter basename="/power-fit">
       <AppProvider>
+        <RefreshGuard />
         <GlobalUI />
         <Routes>
           <Route path="/" element={<HeroPage />} />
