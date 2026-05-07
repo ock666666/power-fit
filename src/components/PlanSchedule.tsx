@@ -6,10 +6,19 @@ const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '
 
 interface Props {
   weekPlan: WeekPlan;
+  weekOffset?: number;
   onReplaceExercise?: (dayIdx: number, exIdx: number) => void;
 }
 
-export default function PlanSchedule({ weekPlan, onReplaceExercise }: Props) {
+function getDayDate(dayIdx: number, weekOffset: number): string {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  now.setDate(now.getDate() + diff + weekOffset * 7 + dayIdx);
+  return `${now.getMonth() + 1}/${now.getDate()}`;
+}
+
+export default function PlanSchedule({ weekPlan, weekOffset = 0, onReplaceExercise }: Props) {
   if (!weekPlan || !weekPlan.weekPlan) return null;
 
   return (
@@ -25,7 +34,7 @@ export default function PlanSchedule({ weekPlan, onReplaceExercise }: Props) {
         >
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-semibold text-foreground">
-              {DAY_NAMES[day.dayIdx]} · {day.focus}
+              {DAY_NAMES[day.dayIdx]} {getDayDate(day.dayIdx, weekOffset)} · {day.focus}
             </h4>
             <span className="text-xs text-foreground/30">{day.totalSets} 组</span>
           </div>

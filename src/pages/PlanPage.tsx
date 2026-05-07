@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import html2canvas from 'html2canvas';
@@ -11,6 +11,7 @@ import EmptyState from '../components/EmptyState';
 export default function PlanPage() {
   const navigate = useNavigate();
   const planRef = useRef<HTMLDivElement>(null);
+  const [weekOffset, setWeekOffset] = useState(0);
   const { weekPlan, setWeekPlan, favorites, removeFavorite } = useApp();
 
   const handleExport = async () => {
@@ -80,9 +81,19 @@ export default function PlanPage() {
               🗑️ 清空计划
             </button>
           </div>
+          {/* Week navigation */}
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <button onClick={() => setWeekOffset((w) => w - 1)}
+              className="text-sm text-foreground/40 hover:text-foreground transition-colors">← 上周</button>
+            <span className="text-xs text-foreground/30">
+              {weekOffset === 0 ? '本周' : weekOffset === 1 ? '下周' : weekOffset < 0 ? `${-weekOffset}周前` : `${weekOffset}周后`}
+            </span>
+            <button onClick={() => setWeekOffset((w) => w + 1)}
+              className="text-sm text-foreground/40 hover:text-foreground transition-colors">下周 →</button>
+          </div>
           <div ref={planRef}>
-            <WeekTracker weekPlan={weekPlan} />
-            <PlanSchedule weekPlan={weekPlan} onReplaceExercise={handleReplaceExercise} />
+            <WeekTracker weekPlan={weekPlan} weekOffset={weekOffset} />
+            <PlanSchedule weekPlan={weekPlan} weekOffset={weekOffset} onReplaceExercise={handleReplaceExercise} />
           </div>
 
           <div className="mt-8">

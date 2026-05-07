@@ -4,18 +4,30 @@ import { useApp } from '../context/AppContext';
 
 const DAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 
-function getMonday(): Date {
+function getMonday(weekOffset: number): Date {
   const now = new Date();
   const day = now.getDay();
   const diff = day === 0 ? -6 : 1 - day;
-  now.setDate(now.getDate() + diff);
+  now.setDate(now.getDate() + diff + weekOffset * 7);
   now.setHours(0, 0, 0, 0);
   return now;
 }
 
-export default function WeekTracker({ weekPlan }: { weekPlan: WeekPlan }) {
+function formatDateRange(monday: Date): string {
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${fmt(monday)} - ${fmt(sunday)}`;
+}
+
+interface Props {
+  weekPlan: WeekPlan;
+  weekOffset: number;
+}
+
+export default function WeekTracker({ weekPlan, weekOffset }: Props) {
   const { trainingLogs } = useApp();
-  const monday = getMonday();
+  const monday = getMonday(weekOffset);
 
   const doneDays = useMemo(() => {
     const set = new Set<number>();
@@ -36,7 +48,10 @@ export default function WeekTracker({ weekPlan }: { weekPlan: WeekPlan }) {
 
   return (
     <div className="mb-6">
-      <h3 className="text-sm font-semibold text-foreground/70 mb-2">本周训练进度</h3>
+      <h3 className="text-sm font-semibold text-foreground/70 mb-2">
+        {weekOffset === 0 ? '本周训练进度' : weekOffset === 1 ? '下周训练进度' : `${-weekOffset}周前训练进度`}
+        <span className="text-xs text-foreground/30 ml-2 font-normal">{formatDateRange(monday)}</span>
+      </h3>
       <div className="flex gap-2">
         {DAY_LABELS.map((label, i) => {
           const isTrainingDay = weekPlan.selectedDays.includes(i);
@@ -60,7 +75,7 @@ export default function WeekTracker({ weekPlan }: { weekPlan: WeekPlan }) {
         })}
       </div>
       <p className="text-xs text-center text-foreground/30 mt-2">
-        本周已完成 {completed}/7 天
+        {weekOffset === 0 ? '本周' : weekOffset === 1 ? '下周' : `${-weekOffset}周前`}已完成 {completed}/7 天
       </p>
     </div>
   );
