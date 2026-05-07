@@ -15,9 +15,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   existingLog?: TrainingLog | null;
+  onSaved?: () => void;
 }
 
-export default function LogFormModal({ open, onClose, existingLog }: Props) {
+export default function LogFormModal({ open, onClose, existingLog, onSaved }: Props) {
   const { addTrainingLog, updateTrainingLog } = useApp();
   const [search, setSearch] = useState('');
   const [selectedEx, setSelectedEx] = useState<Exercise | null>(null);
@@ -80,6 +81,7 @@ export default function LogFormModal({ open, onClose, existingLog }: Props) {
     setFeeling(4);
     setNotes('');
     onClose();
+    onSaved?.();
   };
 
   return (

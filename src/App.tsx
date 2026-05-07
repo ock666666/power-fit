@@ -8,6 +8,7 @@ import PlanPage from './pages/PlanPage';
 import AIPage from './pages/AIPage';
 import DietPage from './pages/DietPage';
 import LogPage from './pages/LogPage';
+import { ToastProvider } from './components/Toast';
 import GlobalUI from './components/GlobalUI';
 import RefreshGuard from './components/RefreshGuard';
 
@@ -15,8 +16,9 @@ export default function App() {
   return (
     <BrowserRouter basename="/power-fit">
       <AppProvider>
-        <RefreshGuard />
-        <GlobalUI />
+        <ToastProvider>
+          <RefreshGuard />
+          <GlobalUI />
         <Routes>
           <Route path="/" element={<HeroPage />} />
           <Route element={<Layout />}>
@@ -28,6 +30,7 @@ export default function App() {
             <Route path="/log" element={<LogPage />} />
           </Route>
         </Routes>
+        </ToastProvider>
       </AppProvider>
     </BrowserRouter>
   );

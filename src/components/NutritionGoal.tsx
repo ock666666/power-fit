@@ -8,6 +8,7 @@ export default function NutritionGoalForm() {
   const [form, setForm] = useState<NutritionGoal>(nutritionGoal || {
     gender: '', age: 25, height: 170, weight: 70, bodyFat: undefined, goal: '', trainingDays: 3,
   });
+  const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => { if (nutritionGoal) setForm(nutritionGoal); }, [nutritionGoal]);
 
@@ -27,9 +28,19 @@ export default function NutritionGoalForm() {
   const targetCarbs = targetCals ? Math.round((targetCals - (targetProtein || 0) * 4 - (targetFat || 0) * 9) / 4) : null;
 
   const handleSave = () => {
+    const errs: string[] = [];
+    if (!form.gender) errs.push('请选择性别');
+    if (!form.goal) errs.push('请选择训练目标');
+    if (!form.age || form.age < 10) errs.push('请填写有效年龄');
+    if (!form.height || form.height < 100) errs.push('请填写有效身高');
+    if (!form.weight || form.weight < 30) errs.push('请填写有效体重');
+    setErrors(errs);
+    if (errs.length > 0) return;
+
     const goal: NutritionGoal = { ...form, tdee: tdee ?? undefined, targetCalories: targetCals ?? undefined, targetProtein: targetProtein ?? undefined, targetCarbs: targetCarbs ?? undefined, targetFat: targetFat ?? undefined };
     setNutritionGoal(goal);
     setEdit(false);
+    setErrors([]);
   };
 
   const update = (p: Partial<NutritionGoal>) => setForm((f) => ({ ...f, ...p }));
@@ -98,6 +109,13 @@ export default function NutritionGoalForm() {
         </motion.div>
       )}
 
+      {errors.length > 0 && (
+        <div className="rounded-xl border border-red-400/20 bg-red-500/5 p-3">
+          {errors.map((e, i) => (
+            <p key={i} className="text-xs text-red-400">⚠ {e}</p>
+          ))}
+        </div>
+      )}
       <button onClick={handleSave}
         className="liquid-glass rounded-full px-6 py-3 text-sm font-medium w-full">
         💾 保存设置

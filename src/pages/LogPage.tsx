@@ -22,6 +22,7 @@ export default function LogPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [pageSize, setPageSize] = useState(20);
+  const [celebrate, setCelebrate] = useState(false);
 
   const filtered = trainingLogs
     .filter((l) => {
@@ -34,6 +35,26 @@ export default function LogPage() {
 
   const displayed = filtered.slice(0, pageSize);
   const hasMore = filtered.length > pageSize;
+
+  // Stats
+  const totalWorkouts = trainingLogs.length;
+  const totalVolume = trainingLogs.reduce((s, l) => s + l.sets.reduce((ss, set) => ss + set.weight * set.reps, 0), 0);
+
+  // Streak: count consecutive days with at least one log, working backwards from today
+  const streak = (() => {
+    let count = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dates = new Set(trainingLogs.map((l) => l.date));
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      if (dates.has(key)) count++;
+      else break;
+    }
+    return count;
+  })();
 
   return (
     <div>
@@ -56,6 +77,22 @@ export default function LogPage() {
 
       {tab === 'records' && (
         <>
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="liquid-glass rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-accent">{totalWorkouts}</p>
+              <p className="text-xs text-foreground/40">总训练次数</p>
+            </div>
+            <div className="liquid-glass rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-accent">{Math.round(totalVolume).toLocaleString()}</p>
+              <p className="text-xs text-foreground/40">总容量(kg)</p>
+            </div>
+            <div className="liquid-glass rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-accent">{streak}</p>
+              <p className="text-xs text-foreground/40">连续打卡</p>
+            </div>
+          </div>
+
           <div className="flex gap-2 mb-4">
             <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPageSize(20); }}
               placeholder="🔍 搜索动作..."
@@ -132,7 +169,32 @@ export default function LogPage() {
             open={logModalOpen}
             onClose={() => { setLogModalOpen(false); setEditingLog(null); }}
             existingLog={editingLog}
+            onSaved={() => setCelebrate(true)}
           />
+
+          {/* Celebration */}
+          {celebrate && (
+            <div className="fixed inset-0 z-[250] pointer-events-none flex items-center justify-center"
+              onClick={() => setCelebrate(false)}>
+              {['🎉','💪','🔥','🏆','⭐','🎯'].map((e, i) => (
+                <motion.span
+                  key={i}
+                  className="absolute text-3xl"
+                  initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
+                  animate={{
+                    opacity: [1, 1, 0],
+                    scale: [0.5, 1.5, 1],
+                    x: (i - 2.5) * 60 + Math.random() * 40 - 20,
+                    y: -120 - Math.random() * 60,
+                  }}
+                  transition={{ duration: 1.5, ease: 'easeOut' }}
+                  onAnimationComplete={() => { if (i === 5) setCelebrate(false); }}
+                >
+                  {e}
+                </motion.span>
+              ))}
+            </div>
+          )}
         </>
       )}
 

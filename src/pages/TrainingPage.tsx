@@ -22,6 +22,7 @@ export default function TrainingPage() {
   const [subFilter, setSubFilter] = useState<string>('all');
   const [diffFilter, setDiffFilter] = useState<string>('all');
   const [equipFilter, setEquipFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
   const filtered = useMemo(() => {
@@ -29,9 +30,10 @@ export default function TrainingPage() {
       if (subFilter !== 'all' && e.subCategory !== subFilter) return false;
       if (diffFilter !== 'all' && e.difficulty !== diffFilter) return false;
       if (equipFilter !== 'all' && e.equipment !== equipFilter) return false;
+      if (searchQuery && !e.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     });
-  }, [exercises, subFilter, diffFilter, equipFilter]);
+  }, [exercises, subFilter, diffFilter, equipFilter, searchQuery]);
 
   if (!muscle) {
     return (
@@ -100,6 +102,17 @@ export default function TrainingPage() {
             {eq.l}
           </FilterChip>
         ))}
+      </div>
+
+      {/* Search */}
+      <div className="mb-3">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="🔍 搜索动作名称..."
+          className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-sm outline-none focus:border-accent/40"
+        />
       </div>
 
       {/* Exercise Grid */}
