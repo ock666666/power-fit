@@ -62,6 +62,15 @@ export default function HeroPage() {
         <div className="absolute inset-0 bg-black/35" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050510] via-transparent to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(5,5,16,0.4)_100%)]" />
+        {/* Film grain texture */}
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '200px 200px',
+          }}
+        />
       </div>
 
       {/* ── Animated light streaks (both PC & mobile) ── */}
@@ -76,30 +85,16 @@ export default function HeroPage() {
         transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut' }}
       />
 
-      {/* ── Breathing blur ── */}
-      <motion.div
-        className="pointer-events-none absolute top-1/2 left-1/2 z-[1] w-[200%] max-w-[984px] aspect-[2/1] -translate-x-1/2 -translate-y-1/2 bg-violet-950 rounded-full"
-        initial={{ opacity: 0.8 }}
-        animate={{
-          opacity: [0.5, 0.8, 0.5],
-          scale: [0.94, 1.06, 0.94],
-        }}
-        transition={{
-          repeat: Infinity,
-          duration: 6,
-          ease: 'easeInOut',
-          delay: 0.3,
-        }}
-        style={{ filter: 'blur(80px)' }}
-      />
-
       {/* ── Content ── */}
       <div className="relative z-10 flex min-h-screen flex-col">
 
         {/* Hero */}
         <div className="flex flex-1 items-center">
           <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
-            <h1 className="font-heading text-[clamp(52px,14vw,200px)] font-normal leading-[1.02] tracking-[-0.024em]">
+            <h1
+              className="font-heading text-[clamp(52px,14vw,200px)] font-normal leading-[1.02] tracking-[-0.024em]"
+              style={{ textShadow: '0 0 100px rgba(168,85,247,0.25), 0 0 40px rgba(99,102,241,0.15)' }}
+            >
               <motion.span
                 className="sm:inline-block text-foreground"
                 initial={{ y: 60, opacity: 0 }}
