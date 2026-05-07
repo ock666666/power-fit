@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import html2canvas from 'html2canvas';
 import { useApp } from '../context/AppContext';
 import { getExerciseByKey, exercisesByMuscle } from '../data/exercises';
 import WeekTracker from '../components/WeekTracker';
@@ -8,7 +10,20 @@ import EmptyState from '../components/EmptyState';
 
 export default function PlanPage() {
   const navigate = useNavigate();
+  const planRef = useRef<HTMLDivElement>(null);
   const { weekPlan, setWeekPlan, favorites, removeFavorite } = useApp();
+
+  const handleExport = async () => {
+    if (!planRef.current) return;
+    const canvas = await html2canvas(planRef.current, {
+      backgroundColor: '#0a0a0f',
+      scale: 2,
+    });
+    const link = document.createElement('a');
+    link.download = `训练计划_${new Date().toISOString().slice(0, 10)}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
 
   const handleReplaceExercise = (dayIdx: number, exIdx: number) => {
     if (!weekPlan) return;
@@ -53,7 +68,11 @@ export default function PlanPage() {
 
       {weekPlan ? (
         <>
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end gap-3 mb-4">
+            <button onClick={handleExport}
+              className="text-xs text-accent/60 hover:text-accent transition-colors">
+              📸 导出图片
+            </button>
             <button
               onClick={() => { if (confirm('确定要清空训练计划吗？')) setWeekPlan(null); }}
               className="text-xs text-red-400/60 hover:text-red-400 transition-colors"
@@ -61,8 +80,10 @@ export default function PlanPage() {
               🗑️ 清空计划
             </button>
           </div>
-          <WeekTracker weekPlan={weekPlan} />
-          <PlanSchedule weekPlan={weekPlan} onReplaceExercise={handleReplaceExercise} />
+          <div ref={planRef}>
+            <WeekTracker weekPlan={weekPlan} />
+            <PlanSchedule weekPlan={weekPlan} onReplaceExercise={handleReplaceExercise} />
+          </div>
 
           <div className="mt-8">
             <h3 className="text-base font-heading font-semibold mb-3">⭐ 我的收藏</h3>
