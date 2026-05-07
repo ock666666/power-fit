@@ -105,16 +105,6 @@ export default function HeroPage() {
 
       {/* ── Content ── */}
       <div className="relative z-10 flex min-h-screen flex-col">
-        <motion.div
-          className="flex items-center justify-between px-5 sm:px-8 py-5 sm:py-6"
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: 0.2 }}
-        >
-          <span className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
-            💪 POWER FIT
-          </span>
-        </motion.div>
 
         {/* Hero */}
         <div className="flex flex-1 items-center">
