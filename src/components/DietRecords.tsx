@@ -13,7 +13,7 @@ const MEALS: { key: keyof DietDay; label: string; emoji: string }[] = [
 interface DietDay { breakfast: DietRecord[]; lunch: DietRecord[]; dinner: DietRecord[]; snack: DietRecord[] }
 
 export default function DietRecordsView() {
-  const { dietRecords, updateDietRecord } = useApp();
+  const { dietRecords, updateDietRecord, nutritionGoal } = useApp();
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [foodSearchOpen, setFoodSearchOpen] = useState<keyof DietDay | null>(null);
 
@@ -62,13 +62,43 @@ export default function DietRecordsView() {
           className="text-lg text-foreground/50 hover:text-foreground">›</button>
       </div>
 
-      {/* Totals */}
-      <motion.div className="liquid-glass rounded-xl p-3 grid grid-cols-4 gap-1 text-center mb-4"
+      {/* Totals + Goal comparison */}
+      <motion.div className="liquid-glass rounded-xl p-4 mb-4"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div><p className="text-xs text-foreground/40">热量</p><p className="text-sm font-semibold">{totals.cal}</p></div>
-        <div><p className="text-xs text-foreground/40">蛋白质</p><p className="text-sm font-semibold">{totals.p}g</p></div>
-        <div><p className="text-xs text-foreground/40">碳水</p><p className="text-sm font-semibold">{totals.c}g</p></div>
-        <div><p className="text-xs text-foreground/40">脂肪</p><p className="text-sm font-semibold">{totals.f}g</p></div>
+        <div className="grid grid-cols-4 gap-2 text-center mb-3">
+          <div><p className="text-xs text-foreground/40">热量</p><p className="text-sm font-semibold">{totals.cal}</p></div>
+          <div><p className="text-xs text-foreground/40">蛋白质</p><p className="text-sm font-semibold">{totals.p}g</p></div>
+          <div><p className="text-xs text-foreground/40">碳水</p><p className="text-sm font-semibold">{totals.c}g</p></div>
+          <div><p className="text-xs text-foreground/40">脂肪</p><p className="text-sm font-semibold">{totals.f}g</p></div>
+        </div>
+        {nutritionGoal && (
+          <div className="space-y-2 pt-2 border-t border-white/5">
+            {[
+              { label: '热量', current: totals.cal, target: nutritionGoal.targetCalories || 0, unit: 'kcal' },
+              { label: '蛋白质', current: totals.p, target: nutritionGoal.targetProtein || 0, unit: 'g' },
+              { label: '碳水', current: totals.c, target: nutritionGoal.targetCarbs || 0, unit: 'g' },
+              { label: '脂肪', current: totals.f, target: nutritionGoal.targetFat || 0, unit: 'g' },
+            ].map((item) => {
+              const pct = item.target > 0 ? Math.min(100, Math.round((item.current / item.target) * 100)) : 0;
+              return (
+                <div key={item.label} className="flex items-center gap-2">
+                  <span className="text-xs text-foreground/40 w-10 shrink-0">{item.label}</span>
+                  <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                    <motion.div
+                      className={`h-full rounded-full ${pct > 100 ? 'bg-red-400/60' : 'bg-accent/60'}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.6, ease: 'easeOut' }}
+                    />
+                  </div>
+                  <span className={`text-xs shrink-0 ${pct > 100 ? 'text-red-400' : 'text-foreground/50'}`}>
+                    {item.current}/{item.target}{item.unit}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </motion.div>
 
       {/* Meals */}

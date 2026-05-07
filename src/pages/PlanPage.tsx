@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { getExerciseByKey } from '../data/exercises';
+import { getExerciseByKey, exercisesByMuscle } from '../data/exercises';
 import WeekTracker from '../components/WeekTracker';
 import PlanSchedule from '../components/PlanSchedule';
 import EmptyState from '../components/EmptyState';
@@ -9,6 +9,37 @@ import EmptyState from '../components/EmptyState';
 export default function PlanPage() {
   const navigate = useNavigate();
   const { weekPlan, setWeekPlan, favorites, removeFavorite } = useApp();
+
+  const handleReplaceExercise = (dayIdx: number, exIdx: number) => {
+    if (!weekPlan) return;
+    const day = weekPlan.weekPlan[dayIdx];
+    if (!day) return;
+    const oldEx = day.exercises[exIdx];
+    if (!oldEx) return;
+
+    // Get alternatives from same muscle group
+    const pool = exercisesByMuscle[oldEx.muscleId] || [];
+    const usedNames = new Set(day.exercises.map((e) => e.name));
+    const candidates = pool.filter((e) => !usedNames.has(e.name) && e.name !== oldEx.name);
+
+    if (candidates.length === 0) return;
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+
+    const newPlan = { ...weekPlan };
+    const newDay = { ...day };
+    const newExercises = [...day.exercises];
+    newExercises[exIdx] = {
+      name: pick.name,
+      muscleId: pick.muscleId,
+      sets: `${oldEx.assignedSets}组×15-20次`,
+      assignedSets: oldEx.assignedSets,
+      emoji: pick.emoji,
+    };
+    newDay.exercises = newExercises;
+    newPlan.weekPlan = [...newPlan.weekPlan];
+    newPlan.weekPlan[dayIdx] = newDay;
+    setWeekPlan(newPlan);
+  };
 
   return (
     <div>
@@ -31,7 +62,7 @@ export default function PlanPage() {
             </button>
           </div>
           <WeekTracker weekPlan={weekPlan} />
-          <PlanSchedule weekPlan={weekPlan} />
+          <PlanSchedule weekPlan={weekPlan} onReplaceExercise={handleReplaceExercise} />
 
           <div className="mt-8">
             <h3 className="text-base font-heading font-semibold mb-3">⭐ 我的收藏</h3>

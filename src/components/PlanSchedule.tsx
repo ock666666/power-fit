@@ -4,7 +4,12 @@ import { getExerciseByKey } from '../data/exercises';
 
 const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
-export default function PlanSchedule({ weekPlan }: { weekPlan: WeekPlan }) {
+interface Props {
+  weekPlan: WeekPlan;
+  onReplaceExercise?: (dayIdx: number, exIdx: number) => void;
+}
+
+export default function PlanSchedule({ weekPlan, onReplaceExercise }: Props) {
   if (!weekPlan || !weekPlan.weekPlan) return null;
 
   return (
@@ -28,10 +33,19 @@ export default function PlanSchedule({ weekPlan }: { weekPlan: WeekPlan }) {
             {day.exercises.map((ex, j) => {
               const fullEx = getExerciseByKey(ex.muscleId, ex.name);
               return (
-                <div key={j} className="flex items-center gap-2 text-sm">
+                <div key={j} className="flex items-center gap-2 text-sm group">
                   <span className="text-base">{fullEx?.emoji || '🏋️'}</span>
                   <span className="text-foreground/70 flex-1">{ex.name}</span>
                   <span className="text-xs text-foreground/30">{ex.sets || `${ex.assignedSets} 组`}</span>
+                  {onReplaceExercise && (
+                    <button
+                      onClick={() => onReplaceExercise(day.dayIdx, j)}
+                      className="text-xs text-foreground/10 hover:text-accent transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                      title="换一个动作"
+                    >
+                      🔄
+                    </button>
+                  )}
                 </div>
               );
             })}

@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Modal from './Modal';
-import { allExercises, type Exercise } from '../data/exercises';
-import { useApp, type TrainingLogSet } from '../context/AppContext';
+import { allExercises, type Exercise, getExerciseByKey } from '../data/exercises';
+import { useApp, type TrainingLogSet, type TrainingLog } from '../context/AppContext';
 
 const FEELINGS = [
   { v: 1, e: '😫', l: '力竭' },
@@ -14,16 +14,32 @@ const FEELINGS = [
 interface Props {
   open: boolean;
   onClose: () => void;
+  existingLog?: TrainingLog | null;
 }
 
-export default function LogFormModal({ open, onClose }: Props) {
-  const { addTrainingLog } = useApp();
+export default function LogFormModal({ open, onClose, existingLog }: Props) {
+  const { addTrainingLog, updateTrainingLog } = useApp();
   const [search, setSearch] = useState('');
   const [selectedEx, setSelectedEx] = useState<Exercise | null>(null);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [sets, setSets] = useState<TrainingLogSet[]>([{ weight: 0, reps: 10 }]);
   const [feeling, setFeeling] = useState(4);
   const [notes, setNotes] = useState('');
+
+  const isEdit = !!existingLog;
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (existingLog) {
+      const ex = getExerciseByKey('chest', existingLog.exerciseName) ||
+        allExercises.find((e) => e.name === existingLog.exerciseName);
+      if (ex) setSelectedEx(ex);
+      setDate(existingLog.date);
+      setSets(existingLog.sets.length > 0 ? existingLog.sets : [{ weight: 0, reps: 10 }]);
+      setFeeling(existingLog.feeling);
+      setNotes(existingLog.notes);
+    }
+  }, [existingLog]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return allExercises.slice(0, 20);
@@ -39,16 +55,25 @@ export default function LogFormModal({ open, onClose }: Props) {
 
   const handleSave = () => {
     if (!selectedEx) return;
-    addTrainingLog({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    const logData = {
       exerciseName: selectedEx.name,
       exerciseId: selectedEx.id,
       date,
       sets: sets.filter((s) => s.weight > 0 || s.reps > 0),
       feeling,
       notes,
-      mode: selectedEx.resistanceType === 'bodyweight' ? 'bodyweight' : 'weighted',
-    });
+      mode: (selectedEx.resistanceType === 'bodyweight' ? 'bodyweight' : 'weighted') as 'weighted' | 'bodyweight',
+    };
+
+    if (isEdit) {
+      updateTrainingLog({ ...logData, id: existingLog!.id });
+    } else {
+      addTrainingLog({
+        ...logData,
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      });
+    }
+
     setSelectedEx(null);
     setSearch('');
     setSets([{ weight: 0, reps: 10 }]);
@@ -59,23 +84,29 @@ export default function LogFormModal({ open, onClose }: Props) {
 
   return (
     <Modal open={open} onClose={onClose}>
-      <h3 className="text-lg font-heading font-semibold mb-4">📝 添加训练记录</h3>
+      <h3 className="text-lg font-heading font-semibold mb-4">
+        {isEdit ? '✏️ 编辑训练记录' : '📝 添加训练记录'}
+      </h3>
 
-      <label className="block text-sm text-foreground/60 mb-1">动作</label>
-      <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-        placeholder="搜索动作..."
-        className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-sm outline-none focus:border-accent/40 mb-2" />
+      {!isEdit && (
+        <>
+          <label className="block text-sm text-foreground/60 mb-1">动作</label>
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="搜索动作..."
+            className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-sm outline-none focus:border-accent/40 mb-2" />
 
-      {search && !selectedEx && (
-        <div className="max-h-40 overflow-y-auto space-y-0.5 mb-3">
-          {filtered.map((ex) => (
-            <button key={ex.id} onClick={() => { setSelectedEx(ex); setSearch(''); }}
-              className="w-full text-left rounded-lg p-2 text-sm hover:bg-white/[0.02] flex items-center gap-2">
-              <span>{ex.emoji}</span>
-              <span className="text-foreground/70">{ex.name}</span>
-            </button>
-          ))}
-        </div>
+          {search && !selectedEx && (
+            <div className="max-h-40 overflow-y-auto space-y-0.5 mb-3">
+              {filtered.map((ex) => (
+                <button key={ex.id} onClick={() => { setSelectedEx(ex); setSearch(''); }}
+                  className="w-full text-left rounded-lg p-2 text-sm hover:bg-white/[0.02] flex items-center gap-2">
+                  <span>{ex.emoji}</span>
+                  <span className="text-foreground/70">{ex.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {selectedEx && (
@@ -133,7 +164,9 @@ export default function LogFormModal({ open, onClose }: Props) {
         <button onClick={onClose}
           className="flex-1 rounded-full border border-white/10 py-3 text-sm text-foreground/50 hover:text-foreground">取消</button>
         <button onClick={handleSave} disabled={!selectedEx}
-          className="flex-1 liquid-glass rounded-full py-3 text-sm font-medium disabled:opacity-20">保存记录</button>
+          className="flex-1 liquid-glass rounded-full py-3 text-sm font-medium disabled:opacity-20">
+          {isEdit ? '更新记录' : '保存记录'}
+        </button>
       </div>
     </Modal>
   );

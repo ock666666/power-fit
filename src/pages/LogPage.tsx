@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import type { TrainingLog } from '../context/AppContext';
 import { useApp } from '../context/AppContext';
 import LogFormModal from '../components/LogFormModal';
 import StrengthChart from '../components/StrengthChart';
@@ -16,6 +17,7 @@ export default function LogPage() {
   const { trainingLogs, removeTrainingLog } = useApp();
   const [tab, setTab] = useState<string>('records');
   const [logModalOpen, setLogModalOpen] = useState(false);
+  const [editingLog, setEditingLog] = useState<TrainingLog | null>(null);
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -85,6 +87,12 @@ export default function LogPage() {
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-foreground/30">{log.date}</span>
                       <button
+                        onClick={() => { setEditingLog(log); setLogModalOpen(true); }}
+                        className="text-xs text-foreground/10 hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        ✎
+                      </button>
+                      <button
                         onClick={() => removeTrainingLog(log.id)}
                         className="text-xs text-foreground/10 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                       >
@@ -115,12 +123,16 @@ export default function LogPage() {
               </button>
             </div>
           )}
-          <button onClick={() => setLogModalOpen(true)}
+          <button onClick={() => { setEditingLog(null); setLogModalOpen(true); }}
             className="liquid-glass rounded-full px-6 py-3 text-sm font-medium w-full mt-4 sticky bottom-20">
             + 添加训练
           </button>
 
-          <LogFormModal open={logModalOpen} onClose={() => setLogModalOpen(false)} />
+          <LogFormModal
+            open={logModalOpen}
+            onClose={() => { setLogModalOpen(false); setEditingLog(null); }}
+            existingLog={editingLog}
+          />
         </>
       )}
 

@@ -102,6 +102,7 @@ interface AppState {
   setTrainingLogs: (logs: TrainingLog[]) => void;
   addTrainingLog: (log: TrainingLog) => void;
   removeTrainingLog: (id: string) => void;
+  updateTrainingLog: (log: TrainingLog) => void;
 
   apiKey: string;
   setApiKey: (key: string) => void;
@@ -196,6 +197,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const updateTrainingLog = useCallback((log: TrainingLog) => {
+    _setTrainingLogs((prev) => {
+      const next = prev.map((l) => (l.id === log.id ? log : l));
+      localStorage.setItem('training_logs', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const setApiKey = useCallback((key: string) => {
     _setApiKey(key);
     localStorage.setItem('deepseek_api_key', key);
@@ -243,7 +252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         weekPlan, setWeekPlan,
         dietRecords, setDietRecords, updateDietRecord,
         nutritionGoal, setNutritionGoal,
-        trainingLogs, setTrainingLogs, addTrainingLog, removeTrainingLog,
+        trainingLogs, setTrainingLogs, addTrainingLog, removeTrainingLog, updateTrainingLog,
         apiKey, setApiKey,
         theme, setTheme,
       }}
