@@ -12,15 +12,23 @@ export default function NutritionGoalForm() {
 
   useEffect(() => { if (nutritionGoal) setForm(nutritionGoal); }, [nutritionGoal]);
 
-  const tdee = form.gender && form.goal
-    ? Math.round(
-        (form.gender === '男' ? 10 * form.weight + 6.25 * form.height - 5 * form.age + 5 :
-        10 * form.weight + 6.25 * form.height - 5 * form.age - 161) * (1.2 + form.trainingDays * 0.1),
-      )
-    : null;
+  // Standard Mifflin-St Jeor BMR
+  const bmr = form.gender && (form.height > 0) && (form.weight > 0)
+    ? form.gender === '男'
+      ? 10 * form.weight + 6.25 * form.height - 5 * form.age + 5
+      : 10 * form.weight + 6.25 * form.height - 5 * form.age - 161
+    : 0;
 
+  // Tiered activity multiplier based on training days
+  const activityMultiplier = form.trainingDays <= 2 ? 1.2 :
+    form.trainingDays <= 4 ? 1.4 :
+    form.trainingDays <= 6 ? 1.55 : 1.7;
+
+  const tdee = bmr > 0 && form.goal ? Math.round(bmr * activityMultiplier) : null;
+
+  // Calorie adjustment: milder deficit for 减脂, moderate surplus for 增肌
   const targetCals = tdee
-    ? form.goal === '增肌' ? tdee + 300 : form.goal === '减脂' ? tdee - 400 : tdee
+    ? form.goal === '增肌' ? tdee + 300 : form.goal === '减脂' ? Math.round(tdee * 0.85) : tdee
     : null;
 
   const targetProtein = targetCals ? Math.round(form.weight * (form.goal === '增肌' ? 2.2 : 1.8)) : null;
@@ -137,7 +145,11 @@ function Field({ label, value, onChange, min, max }: { label: string; value: num
   return (
     <div>
       <label className="block text-xs text-foreground/40 mb-1">{label}</label>
-      <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} min={min} max={max}
+      <input type="text" inputMode="numeric" pattern="[0-9]*"
+        value={value || ''} onChange={(e) => {
+          const raw = e.target.value.replace(/\D/g, '');
+          onChange(raw ? parseInt(raw) : 0);
+        }}
         className="w-24 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-sm text-foreground outline-none focus:border-accent/40" />
     </div>
   );

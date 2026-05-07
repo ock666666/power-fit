@@ -15,7 +15,8 @@ export default function FoodSearchModal({ open, onClose, onSelect }: Props) {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('全部');
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
-  const [grams, setGrams] = useState(100);
+  const [grams, setGrams] = useState('100');
+  const gramsNum = parseInt(grams) || 0;
 
   const filtered = useMemo(() => {
     let list = foodDatabase;
@@ -29,7 +30,7 @@ export default function FoodSearchModal({ open, onClose, onSelect }: Props) {
 
   const handleConfirm = () => {
     if (!selectedFood) return;
-    const portions = grams / 100;
+    const portions = gramsNum / 100;
     onSelect({
       name: selectedFood.name,
       portions,
@@ -40,11 +41,11 @@ export default function FoodSearchModal({ open, onClose, onSelect }: Props) {
       fat: selectedFood.fat,
       category: selectedFood.category,
       primaryNutrient: selectedFood.primaryNutrient,
-      grams,
+      grams: gramsNum,
     });
     setSelectedFood(null);
     setSearch('');
-    setGrams(100);
+    setGrams('100');
     onClose();
   };
 
@@ -78,7 +79,7 @@ export default function FoodSearchModal({ open, onClose, onSelect }: Props) {
       <div className="max-h-48 overflow-y-auto space-y-1 mb-4">
         {filtered.map((food) => (
           <button key={food.name}
-            onClick={() => { setSelectedFood(food); setGrams(100); }}
+            onClick={() => { setSelectedFood(food); setGrams('100'); }}
             className={`w-full text-left rounded-lg p-2.5 text-sm transition-colors ${
               selectedFood?.name === food.name ? 'bg-accent/10 border border-accent/30' : 'hover:bg-white/[0.02] border border-transparent'
             }`}>
@@ -94,15 +95,15 @@ export default function FoodSearchModal({ open, onClose, onSelect }: Props) {
         <div className="border-t border-white/5 pt-4">
           <p className="text-sm font-semibold mb-2">{selectedFood.name} ({selectedFood.unit})</p>
           <div className="flex items-center gap-3 mb-3">
-            <input type="number" value={grams} onChange={(e) => setGrams(Number(e.target.value) || 0)} min={1}
+            <input type="text" inputMode="numeric" pattern="[0-9]*" value={grams} onChange={(e) => setGrams(e.target.value.replace(/\D/g, ''))}
               className="w-24 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-center text-lg outline-none focus:border-accent/40" />
             <span className="text-sm text-foreground/50">g</span>
           </div>
           <div className="grid grid-cols-4 gap-2 text-xs mb-4">
-            <div className="text-center"><p className="text-foreground/30">热量</p><p>{Math.round(selectedFood.calories * grams / 100)}kcal</p></div>
-            <div className="text-center"><p className="text-foreground/30">蛋白质</p><p>{Math.round(selectedFood.protein * grams / 100)}g</p></div>
-            <div className="text-center"><p className="text-foreground/30">碳水</p><p>{Math.round(selectedFood.carbs * grams / 100)}g</p></div>
-            <div className="text-center"><p className="text-foreground/30">脂肪</p><p>{Math.round(selectedFood.fat * grams / 100)}g</p></div>
+            <div className="text-center"><p className="text-foreground/30">热量</p><p>{Math.round(selectedFood.calories * gramsNum / 100)}kcal</p></div>
+            <div className="text-center"><p className="text-foreground/30">蛋白质</p><p>{Math.round(selectedFood.protein * gramsNum / 100)}g</p></div>
+            <div className="text-center"><p className="text-foreground/30">碳水</p><p>{Math.round(selectedFood.carbs * gramsNum / 100)}g</p></div>
+            <div className="text-center"><p className="text-foreground/30">脂肪</p><p>{Math.round(selectedFood.fat * gramsNum / 100)}g</p></div>
           </div>
           <button onClick={handleConfirm}
             className="liquid-glass rounded-full px-6 py-3 text-sm font-medium w-full">

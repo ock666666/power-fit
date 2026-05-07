@@ -11,15 +11,17 @@ function calc1RM(weight: number, reps: number) {
 
 export default function OneRMCalculator() {
   const [search, setSearch] = useState('');
-  const [weight, setWeight] = useState(0);
-  const [reps, setReps] = useState(10);
+  const [weight, setWeight] = useState('');
+  const [reps, setReps] = useState('10');
+  const weightNum = parseFloat(weight) || 0;
+  const repsNum = parseInt(reps) || 0;
 
   const filtered = useMemo(() => {
     if (!search.trim()) return [];
     return allExercises.filter((e) => e.name.toLowerCase().includes(search.toLowerCase())).slice(0, 10);
   }, [search]);
 
-  const rm = reps > 0 && weight > 0 ? calc1RM(weight, reps) : 0;
+  const rm = repsNum > 0 && weightNum > 0 ? calc1RM(weightNum, repsNum) : 0;
 
   return (
     <div>
@@ -41,14 +43,13 @@ export default function OneRMCalculator() {
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div>
           <label className="block text-sm text-foreground/60 mb-1">重量 (kg)</label>
-          <input type="number" value={weight || ''} onChange={(e) => setWeight(Number(e.target.value))}
-            placeholder="0" min={0} step={0.5}
+          <input type="text" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value.replace(/[^\d.]/g, ''))}
+            placeholder="0"
             className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-lg text-center outline-none focus:border-accent/40" />
         </div>
         <div>
           <label className="block text-sm text-foreground/60 mb-1">次数 (1-12)</label>
-          <input type="number" value={reps || ''} onChange={(e) => setReps(Math.min(12, Math.max(1, Number(e.target.value) || 1)))}
-            min={1} max={12}
+          <input type="text" inputMode="numeric" pattern="[0-9]*" value={reps} onChange={(e) => setReps(e.target.value.replace(/\D/g, ''))}
             className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-lg text-center outline-none focus:border-accent/40" />
         </div>
       </div>

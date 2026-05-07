@@ -128,12 +128,12 @@ export default function LogFormModal({ open, onClose, existingLog, onSaved }: Pr
         {sets.map((s, i) => (
           <div key={i} className="flex items-center gap-2">
             <span className="text-xs text-foreground/30 w-8">第{i + 1}组</span>
-            <input type="number" value={s.weight || ''} onChange={(e) => updateSet(i, 'weight', Number(e.target.value))}
-              placeholder="重量" min={0} step={0.5}
+            <input type="text" inputMode="decimal" value={s.weight || ''} onChange={(e) => updateSet(i, 'weight', parseFloat(e.target.value.replace(/[^\d.]/g, '')) || 0)}
+              placeholder="重量"
               className="w-20 rounded-lg border border-white/10 bg-white/[0.02] px-2 py-1.5 text-sm outline-none focus:border-accent/40" />
             <span className="text-xs text-foreground/30">kg</span>
-            <input type="number" value={s.reps || ''} onChange={(e) => updateSet(i, 'reps', Number(e.target.value))}
-              placeholder="次数" min={0}
+            <input type="text" inputMode="numeric" pattern="[0-9]*" value={s.reps || ''} onChange={(e) => updateSet(i, 'reps', parseInt(e.target.value.replace(/\D/g, '')) || 0)}
+              placeholder="次数"
               className="w-16 rounded-lg border border-white/10 bg-white/[0.02] px-2 py-1.5 text-sm outline-none focus:border-accent/40" />
             <span className="text-xs text-foreground/30">次</span>
             {sets.length > 1 && (

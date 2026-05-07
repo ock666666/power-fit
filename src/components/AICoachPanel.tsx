@@ -61,10 +61,15 @@ export default function AICoachPanel({ onClose }: { onClose: () => void }) {
         }),
       });
       const data = await resp.json();
-      const reply = data.choices?.[0]?.message?.content || '抱歉，我暂时无法回答，请稍后重试。';
-      setMessages((m) => [...m, { role: 'bot', content: reply }]);
+      if (!resp.ok) {
+        const errMsg = data.error?.message || `HTTP ${resp.status}`;
+        setMessages((m) => [...m, { role: 'bot', content: `❌ API错误：${errMsg}` }]);
+      } else {
+        const reply = data.choices?.[0]?.message?.content || '（空回复，请重试）';
+        setMessages((m) => [...m, { role: 'bot', content: reply }]);
+      }
     } catch {
-      setMessages((m) => [...m, { role: 'bot', content: '网络错误，请检查API Key后重试。' }]);
+      setMessages((m) => [...m, { role: 'bot', content: '❌ 网络错误，请检查网络连接后重试。' }]);
     }
     setLoading(false);
   };
