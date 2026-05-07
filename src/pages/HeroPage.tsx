@@ -60,7 +60,7 @@ export default function HeroPage() {
           <motion.div
             className="absolute inset-0"
             style={{
-              backgroundImage: 'url(/david-laid.jpg)',
+              backgroundImage: `url(${import.meta.env.BASE_URL}david-laid.jpg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center top',
             }}

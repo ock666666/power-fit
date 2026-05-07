@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import { ToastProvider } from './components/Toast';
 import GlobalUI from './components/GlobalUI';
 import RefreshGuard from './components/RefreshGuard';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Hero stays eager for instant landing page
 import HeroPage from './pages/HeroPage';
@@ -32,8 +33,9 @@ export default function App() {
         <ToastProvider>
           <RefreshGuard />
           <GlobalUI />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               <Route path="/" element={<HeroPage />} />
               <Route element={<Layout />}>
                 <Route path="/home" element={<HomePage />} />
@@ -44,7 +46,8 @@ export default function App() {
                 <Route path="/log" element={<LogPage />} />
               </Route>
             </Routes>
-          </Suspense>
+            </Suspense>
+          </ErrorBoundary>
         </ToastProvider>
       </AppProvider>
     </BrowserRouter>
