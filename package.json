@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fontsource/geist-sans": "^5.2.5",
+    "@supabase/supabase-js": "^2.105.3",
     "autoprefixer": "^10.5.0",
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",

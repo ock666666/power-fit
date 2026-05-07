@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
+import { useSupabaseSync } from '../hooks/useSupabaseSync';
 
 // ── Types ──
 export interface FavoriteItem {
@@ -123,6 +125,8 @@ function loadJSON<T>(key: string, fallback: T): T {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  useSupabaseSync();
+
   const [favorites, setFavorites] = useState<FavoriteItem[]>(() =>
     loadJSON<FavoriteItem[]>('fitness_favorites', []),
   );
@@ -148,8 +152,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── Persisted setters ──
   const setWeekPlan = useCallback((plan: WeekPlan | null) => {
     _setWeekPlan(plan);
-    if (plan) localStorage.setItem('fitness_weekplan', JSON.stringify(plan));
-    else localStorage.removeItem('fitness_weekplan');
+    if (plan) {
+      localStorage.setItem('fitness_weekplan', JSON.stringify(plan));
+      supabase.from('workout_plans').upsert({ id: 1, plan_data: plan as any });
+    } else {
+      localStorage.removeItem('fitness_weekplan');
+      supabase.from('workout_plans').delete().eq('id', 1);
+    }
   }, []);
 
   const setDietRecords = useCallback((records: Record<string, DietDay>) => {
@@ -172,13 +181,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setNutritionGoal = useCallback((goal: NutritionGoal | null) => {
     _setNutritionGoal(goal);
-    if (goal) localStorage.setItem('nutrition_goal', JSON.stringify(goal));
-    else localStorage.removeItem('nutrition_goal');
+    if (goal) {
+      localStorage.setItem('nutrition_goal', JSON.stringify(goal));
+      supabase.from('nutrition_goals').upsert({ id: 1, goal_data: goal as any });
+    } else {
+      localStorage.removeItem('nutrition_goal');
+      supabase.from('nutrition_goals').delete().eq('id', 1);
+    }
   }, []);
 
   const setTrainingLogs = useCallback((logs: TrainingLog[]) => {
     _setTrainingLogs(logs);
     localStorage.setItem('training_logs', JSON.stringify(logs));
+    // Full sync: clear then re-insert
+    supabase.from('training_logs').delete().neq('id', '0').then(() => {
+      for (const log of logs) {
+        supabase.from('training_logs').upsert(log as any);
+      }
+    });
   }, []);
 
   const addTrainingLog = useCallback((log: TrainingLog) => {
@@ -187,6 +207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('training_logs', JSON.stringify(next));
       return next;
     });
+    supabase.from('training_logs').upsert(log as any);
   }, []);
 
   const removeTrainingLog = useCallback((id: string) => {
@@ -195,6 +216,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('training_logs', JSON.stringify(next));
       return next;
     });
+    supabase.from('training_logs').delete().eq('id', id);
   }, []);
 
   const updateTrainingLog = useCallback((log: TrainingLog) => {
@@ -203,6 +225,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('training_logs', JSON.stringify(next));
       return next;
     });
+    supabase.from('training_logs').upsert(log as any);
   }, []);
 
   const setApiKey = useCallback((key: string) => {
@@ -230,6 +253,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           added = true;
         }
         localStorage.setItem('fitness_favorites', JSON.stringify(next));
+        // Sync to Supabase
+        if (added) {
+          supabase.from('user_favorites').upsert({ action_name: name, category: muscleId });
+        } else {
+          supabase.from('user_favorites').delete().eq('action_name', name);
+        }
         return next;
       });
       return added;
@@ -243,6 +272,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('fitness_favorites', JSON.stringify(next));
       return next;
     });
+    supabase.from('user_favorites').delete().eq('action_name', name);
   }, []);
 
   return (
