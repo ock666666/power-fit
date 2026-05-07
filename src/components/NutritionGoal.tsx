@@ -84,9 +84,9 @@ export default function NutritionGoalForm() {
       </div>
 
       <div className="flex gap-3 flex-wrap">
-        <Field label="年龄" value={form.age} onChange={(v) => update({ age: v })} min={10} max={99} />
-        <Field label="身高(cm)" value={form.height} onChange={(v) => update({ height: v })} min={100} max={250} />
-        <Field label="体重(kg)" value={form.weight} onChange={(v) => update({ weight: v })} min={30} max={200} />
+        <Field label="年龄" value={form.age} onChange={(v) => update({ age: v })} />
+        <Field label="身高(cm)" value={form.height} onChange={(v) => update({ height: v })} />
+        <Field label="体重(kg)" value={form.weight} onChange={(v) => update({ weight: v })} />
       </div>
 
       <div className="flex gap-3 flex-wrap">
@@ -141,7 +141,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Field({ label, value, onChange, min, max }: { label: string; value: number; onChange: (v: number) => void; min: number; max: number }) {
+function Field({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
     <div>
       <label className="block text-xs text-foreground/40 mb-1">{label}</label>
