@@ -1,14 +1,11 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useRef, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const MARQUEE_ITEMS = [
   '杠铃深蹲', '硬拉', '平板卧推', '引体向上', '哑铃飞鸟',
   '杠铃深蹲', '硬拉', '平板卧推', '引体向上', '哑铃飞鸟',
 ];
-
-const VIDEO_SRC =
-  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_065045_c44942da-53c6-4804-b734-f9e07fc22e08.mp4';
 
 export default function HeroPage() {
   const navigate = useNavigate();
@@ -19,37 +16,23 @@ export default function HeroPage() {
     setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
   }, []);
 
-  // Motion values for parallax (PC: mouse, Mobile: gyro)
-  const motionX = useMotionValue(0.5);
-  const motionY = useMotionValue(0.5);
-  const offsetX = useTransform(motionX, [0, 1], [-12, 12]);
-  const offsetY = useTransform(motionY, [0, 1], [-12, 12]);
-
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      motionX.set(e.clientX / window.innerWidth);
-      motionY.set(e.clientY / window.innerHeight);
-    },
-    [motionX, motionY],
-  );
-
   // Gyro-based parallax on mobile
   useEffect(() => {
     if (!isMobile) return;
     const handleOrientation = (e: DeviceOrientationEvent) => {
+      // subtle background shift via CSS custom property
       if (e.gamma !== null && e.beta !== null) {
-        motionX.set((e.gamma + 90) / 180);
-        motionY.set((e.beta + 180) / 360);
+        document.body.style.setProperty('--gyro-x', `${(e.gamma + 90) / 3}px`);
+        document.body.style.setProperty('--gyro-y', `${(e.beta + 180) / 4}px`);
       }
     };
     window.addEventListener('deviceorientation', handleOrientation);
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, [isMobile, motionX, motionY]);
+  }, [isMobile]);
 
   return (
     <div
       ref={containerRef}
-      onPointerMove={handlePointerMove}
       className="relative min-h-screen flex flex-col overflow-hidden bg-[#050510]"
     >
       {/* ── Background ── */}
@@ -67,11 +50,22 @@ export default function HeroPage() {
             />
           </>
         ) : (
-          <VideoEl offsetX={offsetX} offsetY={offsetY} />
+          // PC: David Laid full-screen BG with slow zoom
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: 'url(/david-laid.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center top',
+            }}
+            animate={{ scale: [1, 1.06] }}
+            transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut', repeatType: 'reverse' }}
+          />
         )}
-        {/* Depth overlay */}
+        {/* Dark overlays for text readability */}
+        <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050510] via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(5,5,16,0.5)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(5,5,16,0.6)_100%)]" />
       </div>
 
       {/* ── Animated light streaks (both PC & mobile) ── */}
@@ -188,46 +182,5 @@ export default function HeroPage() {
         </motion.div>
       </div>
     </div>
-  );
-}
-
-// ── PC video ──
-function VideoEl({ offsetX, offsetY }: { offsetX: any; offsetY: any }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [opacity, setOpacity] = useState(0);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const fadeIn = () => setOpacity(1);
-    const handleEnded = () => {
-      setOpacity(0);
-      timeoutId = setTimeout(() => {
-        if (video) video.currentTime = 0;
-        setOpacity(1);
-      }, 600);
-    };
-
-    video.addEventListener('loadeddata', fadeIn);
-    video.addEventListener('ended', handleEnded);
-    return () => {
-      clearTimeout(timeoutId);
-      video.removeEventListener('loadeddata', fadeIn);
-      video.removeEventListener('ended', handleEnded);
-    };
-  }, []);
-
-  return (
-    <motion.video
-      ref={videoRef}
-      className="absolute inset-0 h-[110%] w-[110%] -top-[5%] -left-[5%] object-cover"
-      muted playsInline
-      style={{ x: offsetX, y: offsetY }}
-      animate={{ opacity }}
-      transition={{ duration: 0.5, ease: 'easeInOut' }}
-      src={VIDEO_SRC}
-    />
   );
 }
