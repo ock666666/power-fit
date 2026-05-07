@@ -43,35 +43,25 @@ export default function HeroPage() {
     >
       {/* ── Background ── */}
       <div className="absolute inset-0 z-0">
-        {isMobile ? (
-          // Mobile: animated gradient + subtle grid
-          <>
-            <div className="absolute inset-0 bg-gradient-to-br from-[#050510] via-[#0d0720] to-[#080510]" />
-            <div
-              className="absolute inset-0 opacity-[0.03]"
-              style={{
-                backgroundImage:
-                  'repeating-linear-gradient(0deg, rgba(255,255,255,0.1) 0px, transparent 1px, transparent 60px), repeating-linear-gradient(90deg, rgba(255,255,255,0.1) 0px, transparent 1px, transparent 60px)',
-              }}
-            />
-          </>
-        ) : (
-          // PC: David Laid full-screen BG with slow zoom
-          <motion.div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url(${import.meta.env.BASE_URL}david-laid.jpg)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center top',
-            }}
-            animate={{ scale: [1, 1.06] }}
-            transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut', repeatType: 'reverse' }}
-          />
+        {/* David Laid full-screen BG with slow zoom */}
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${import.meta.env.BASE_URL}david-laid.jpg)`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+          }}
+          animate={{ scale: [1, 1.06] }}
+          transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut', repeatType: 'reverse' }}
+        />
+        {/* Mobile: extra gradient overlay for text readability on small text */}
+        {isMobile && (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#050510]/40 via-transparent to-[#080510]/40" />
         )}
         {/* Dark overlays for text readability */}
-        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-black/35" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050510] via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(5,5,16,0.6)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(5,5,16,0.4)_100%)]" />
       </div>
 
       {/* ── Animated light streaks (both PC & mobile) ── */}
