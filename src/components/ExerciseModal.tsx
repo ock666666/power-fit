@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Modal from './Modal';
+import { useApp } from '../context/AppContext';
 import type { Exercise } from '../data/exercises';
 
 interface Props {
@@ -27,8 +28,23 @@ export default function ExerciseModal({ exercise, onClose }: Props) {
   const [pcResult, setPcResult] = useState('');
   const [pcLoading, setPcLoading] = useState(false);
 
-  if (!exercise) return null;
+  const { trainingLogs } = useApp();
+  const history = useMemo(() => {
+    return trainingLogs
+      .filter((l) => l.exerciseName === exercise?.name)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 10);
+  }, [trainingLogs, exercise?.name]);
 
+  const bestWeight = useMemo(() => {
+    let best = 0;
+    history.forEach((l) => {
+      l.sets.forEach((s) => { if (s.weight > best) best = s.weight; });
+    });
+    return best;
+  }, [history]);
+
+  if (!exercise) return null;
   const handlePostureCheck = async () => {
     if (!pcInput.trim()) return;
     setPcLoading(true);
@@ -93,6 +109,35 @@ export default function ExerciseModal({ exercise, onClose }: Props) {
           <li key={i}>{step}</li>
         ))}
       </ol>
+
+      {/* Training History */}
+      {history.length > 0 && (
+        <div className="border-t border-white/5 pt-4 mb-4">
+          <h4 className="text-sm font-semibold mb-2">📊 训练历史</h4>
+          <div className="rounded-lg bg-white/[0.02] border border-white/5 p-2">
+            <div className="flex items-center justify-between text-xs text-foreground/50 mb-2 px-1">
+              <span>日期</span>
+              <span>最大重量</span>
+            </div>
+            {history.map((log) => {
+              const maxW = Math.max(...log.sets.map((s) => s.weight), 0);
+              return (
+                <div key={log.id} className="flex items-center justify-between text-sm py-1 px-1 rounded hover:bg-white/[0.02]">
+                  <span className="text-foreground/60">{log.date.slice(5)}</span>
+                  <span className="text-foreground/80 font-medium">
+                    {maxW > 0 ? `${maxW}kg` : `${log.sets.reduce((s, set) => s + set.reps, 0)}次`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {bestWeight > 0 && (
+            <p className="text-xs text-center text-accent/60 mt-2">
+              🏆 历史最佳：{bestWeight}kg
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Posture Correction */}
       <div className="border-t border-white/5 pt-4">
