@@ -57,7 +57,7 @@ export default function HeroPage() {
         {isMobile ? (
           // Mobile: animated gradient + subtle grid
           <>
-            <div className="absolute inset-0 bg-gradient-to-br from-[#050510] via-[#0a1a20] to-[#051510]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#050510] via-[#0d0720] to-[#080510]" />
             <div
               className="absolute inset-0 opacity-[0.03]"
               style={{
@@ -76,19 +76,19 @@ export default function HeroPage() {
 
       {/* ── Animated light streaks (both PC & mobile) ── */}
       <motion.div
-        className="pointer-events-none absolute top-0 left-1/4 z-[1] w-px h-full bg-gradient-to-b from-transparent via-accent/10 to-transparent"
+        className="pointer-events-none absolute top-0 left-1/4 z-[1] w-px h-full bg-gradient-to-b from-transparent via-violet-400/10 to-transparent"
         animate={{ opacity: [0.3, 0.7, 0.3], x: [-20, 20, -20] }}
         transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute top-0 right-1/4 z-[1] w-px h-full bg-gradient-to-b from-transparent via-[#00ff88]/8 to-transparent"
+        className="pointer-events-none absolute top-0 right-1/4 z-[1] w-px h-full bg-gradient-to-b from-transparent via-purple-400/8 to-transparent"
         animate={{ opacity: [0.4, 0.15, 0.4], x: [20, -20, 20] }}
         transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut' }}
       />
 
       {/* ── Breathing blur ── */}
       <motion.div
-        className="pointer-events-none absolute top-1/2 left-1/2 z-[1] w-[200%] max-w-[984px] aspect-[2/1] -translate-x-1/2 -translate-y-1/2 bg-cyan-950 rounded-full"
+        className="pointer-events-none absolute top-1/2 left-1/2 z-[1] w-[200%] max-w-[984px] aspect-[2/1] -translate-x-1/2 -translate-y-1/2 bg-violet-950 rounded-full"
         initial={{ opacity: 0.8 }}
         animate={{
           opacity: [0.5, 0.8, 0.5],
@@ -129,7 +129,7 @@ export default function HeroPage() {
                 POWER{' '}
               </motion.span>
               <motion.span
-                className="sm:inline-block bg-gradient-to-r from-[#00e5ff] via-[#00ff88] to-[#00e5ff] bg-clip-text text-transparent gradient-flow"
+                className="sm:inline-block bg-gradient-to-l from-[#6366f1] via-[#a855f7] to-[#fcd34d] bg-clip-text text-transparent gradient-flow"
                 initial={{ y: 60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.8, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
@@ -162,7 +162,7 @@ export default function HeroPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 1.3, duration: 0.5, ease: 'easeOut' }}
-              whileHover={{ scale: 1.04, boxShadow: '0 0 32px rgba(0,229,255,0.2)' }}
+              whileHover={{ scale: 1.04, boxShadow: '0 0 32px rgba(255,255,255,0.15)' }}
             >
               开始训练 →
             </motion.button>

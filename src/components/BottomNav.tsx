@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 const NAV_ITEMS = [
   { to: '/home', label: '首页', emoji: '🏠' },
@@ -10,6 +11,7 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const location = useLocation();
+  const { theme, setTheme } = useApp();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-background/80 backdrop-blur-lg">
@@ -20,7 +22,6 @@ export default function BottomNav() {
             to={item.to}
             end={item.to === '/home'}
             className={({ isActive }) => {
-              // Highlight home nav for /training/* sub-pages too
               const active = isActive || (item.to === '/home' && location.pathname.startsWith('/training/'));
               return `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs transition-colors ${
                 active ? 'text-foreground' : 'text-foreground/40'
@@ -31,6 +32,13 @@ export default function BottomNav() {
             <span>{item.label}</span>
           </NavLink>
         ))}
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'warm' : 'dark')}
+          className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-xs text-foreground/40 hover:text-foreground transition-colors"
+        >
+          <span className="text-lg">{theme === 'dark' ? '🌙' : '🌸'}</span>
+          <span>{theme === 'dark' ? '暗色' : '暖色'}</span>
+        </button>
       </div>
     </nav>
   );
