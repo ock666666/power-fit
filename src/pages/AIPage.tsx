@@ -81,7 +81,18 @@ export default function AIPage() {
   };
 
   if (plan) {
-    return <AIResult plan={plan} onRegenerate={() => { setPlan(null); setStep(0); }} onSave={handleSave} />;
+    return (
+      <AIResult
+        plan={plan}
+        onUpdatePlan={setPlan}
+        onRegenerate={() => {
+          setLoading(true);
+          setTimeout(() => { setPlan(generateAIPlan(state)); setLoading(false); }, 600);
+        }}
+        onSave={handleSave}
+        onBackToWizard={() => setStep(0)}
+      />
+    );
   }
 
   if (loading) {
