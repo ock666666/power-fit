@@ -61,7 +61,7 @@ export default function HeroPage() {
         {/* Dark overlays for text readability */}
         <div className="absolute inset-0 bg-black/35" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050510] via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(5,5,16,0.4)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(5,5,16,0.55)_100%)]" />
         {/* Film grain texture */}
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"

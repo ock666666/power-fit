@@ -160,7 +160,7 @@ function FilterChip({
         active
           ? 'border-accent/40 bg-accent/10 text-accent'
           : 'border-white/5 bg-white/[0.02] text-foreground/50 hover:text-foreground/80'
-      } ${small ? 'px-3 py-1 text-xs' : 'px-3.5 py-1.5 text-sm'}`}
+      } ${small ? 'px-3 py-1.5 text-xs sm:px-3 sm:py-1 sm:text-xs' : 'px-3.5 py-1.5 text-sm'}`}
     >
       {children}
     </button>
