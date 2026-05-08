@@ -21,7 +21,23 @@ export default function AIResult({ plan, onUpdatePlan, onRegenerate, onSave, onB
 
     const pool = exercisesByMuscle[oldEx.muscleId] || [];
     const usedNames = new Set(day.exercises.map((e) => e.name));
-    const candidates = pool.filter((e) => !usedNames.has(e.name) && e.name !== oldEx.name);
+    // Filter out same subCategory free-weight conflicts
+    const isFW = (eq: string) => eq === 'dumbbell' || eq === 'barbell';
+    const fwSubs = new Set(
+      day.exercises.filter((e) => isFW(exercisesByMuscle[e.muscleId]?.find((x) => x.name === e.name)?.equipment || ''))
+        .map((e) => exercisesByMuscle[e.muscleId]?.find((x) => x.name === e.name)?.subCategory || ''),
+    );
+    const candidates = pool.filter((e) => {
+      if (usedNames.has(e.name)) return false;
+      if (e.name === oldEx.name) return false;
+      // If replacing a free-weight ex with another free-weight ex, don't conflict
+      // The old one's subCategory will be freed up
+      const otherFwSubs = new Set(fwSubs);
+      const oldExData = pool.find((x) => x.name === oldEx.name);
+      if (oldExData && isFW(oldExData.equipment)) otherFwSubs.delete(oldExData.subCategory);
+      if (isFW(e.equipment) && otherFwSubs.has(e.subCategory)) return false;
+      return true;
+    });
     if (candidates.length === 0) return;
     const pick = candidates[Math.floor(Math.random() * candidates.length)];
 

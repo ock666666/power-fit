@@ -215,9 +215,14 @@ function selectExercisesForDay(
   const { groups, primary } = dayInfo;
   const selected: (Exercise & { role: string; assignedSets: number })[] = [];
   const used = new Set<string>();
+  const usedFreeWeightSub = new Set<string>(); // subCategory of free-weight exercises already selected
+
+  const isFreeWeight = (eq: string) => eq === 'dumbbell' || eq === 'barbell';
 
   function avail(mid: string) {
     let arr = getAvailable(mid, pool, expCfg).map((e) => ({ ...e, muscleId: mid }));
+    // Exclude candidates that share subCategory with an already-selected free-weight exercise
+    arr = arr.filter((e) => !isFreeWeight(e.equipment) || !usedFreeWeightSub.has(e.subCategory));
     if (gender === '女') {
       const rec = arr.filter((e) => e.femaleRecommended);
       if (rec.length >= 1) arr = rec;
@@ -239,6 +244,7 @@ function selectExercisesForDay(
     if (!ex || used.has(ex.name)) return false;
     selected.push({ ...ex, muscleId: ex.muscleId || '', role, assignedSets: gCfg.sets });
     used.add(ex.name);
+    if (isFreeWeight(ex.equipment)) usedFreeWeightSub.add(ex.subCategory);
     return true;
   }
 
