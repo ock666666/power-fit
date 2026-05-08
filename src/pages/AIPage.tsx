@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext';
 import { generateAIPlan, getDefaultDays, type AIState } from '../utils/aiEngine';
 import AIResult from '../components/AIResult';
 
-const STEPS = ['🎯 目标', '📅 频率', '📅 日期', '💪 经验', '🔧 器械'];
+const STEPS = ['🎯 目标', '🔄 分化', '📅 频率', '📅 日期', '💪 经验', '🔧 器械'];
 const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 export default function AIPage() {
@@ -16,6 +16,7 @@ export default function AIPage() {
   const [state, setState] = useState<AIState>({
     gender: nutritionGoal?.gender || '',
     goal: '',
+    split: 'ppl',
     days: 3,
     selectedDays: getDefaultDays(3),
     experience: '',
@@ -53,14 +54,14 @@ export default function AIPage() {
 
   const canNext = () => {
     if (step === 0 && (!state.gender || !state.goal)) return false;
-    if (step === 2 && state.selectedDays.length !== state.days) return false;
-    if (step === 3 && !state.experience) return false;
-    if (step === 4 && state.equipment.length === 0) return false;
+    if (step === 3 && state.selectedDays.length !== state.days) return false;
+    if (step === 4 && !state.experience) return false;
+    if (step === 5 && state.equipment.length === 0) return false;
     return true;
   };
 
   const handleNext = () => {
-    if (step === 4) {
+    if (step === 5) {
       setLoading(true);
       setTimeout(() => {
         const p = generateAIPlan(state);
@@ -150,8 +151,31 @@ export default function AIPage() {
           </div>
         )}
 
-        {/* Step 1: Days */}
+        {/* Step 1: Split */}
         {step === 1 && (
+          <div>
+            <h3 className="text-base font-semibold mb-4">选择训练分化方式</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { v: 'ppl' as const, t: '推拉腿', d: '推/拉/腿循环，适合3-6天', e: '🔄' },
+                { v: 'bro' as const, t: '五分化', d: '胸/背/肩/手臂/腿，适合4-5天', e: '🎯' },
+              ].map((o) => (
+                <button key={o.v}
+                  onClick={() => update({ split: o.v })}
+                  className={`rounded-xl p-4 text-left border transition-colors ${
+                    state.split === o.v ? 'border-accent/40 bg-accent/10' : 'border-white/5 bg-white/[0.02] hover:border-white/10'
+                  }`}>
+                  <span className="text-2xl block mb-2">{o.e}</span>
+                  <p className={`text-sm font-semibold ${state.split === o.v ? 'text-accent' : 'text-foreground'}`}>{o.t}</p>
+                  <p className="text-xs text-foreground/40 mt-1">{o.d}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Days */}
+        {step === 2 && (
           <div>
             <h3 className="text-base font-semibold mb-4">每周能训练几天？</h3>
             <div className="flex items-center gap-4">
@@ -172,8 +196,8 @@ export default function AIPage() {
           </div>
         )}
 
-        {/* Step 2: Select days */}
-        {step === 2 && (
+        {/* Step 3: Select days */}
+        {step === 3 && (
           <div>
             <h3 className="text-base font-semibold mb-4">选择训练日</h3>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -197,8 +221,8 @@ export default function AIPage() {
           </div>
         )}
 
-        {/* Step 3: Experience */}
-        {step === 3 && (
+        {/* Step 4: Experience */}
+        {step === 4 && (
           <div>
             <h3 className="text-base font-semibold mb-3">你的训练经验如何？</h3>
             <div className="flex gap-3">
@@ -215,8 +239,8 @@ export default function AIPage() {
           </div>
         )}
 
-        {/* Step 4: Equipment */}
-        {step === 4 && (
+        {/* Step 5: Equipment */}
+        {step === 5 && (
           <div>
             <h3 className="text-base font-semibold mb-3">你有哪些器械可用？</h3>
             <div className="flex flex-wrap gap-2">
@@ -257,7 +281,7 @@ export default function AIPage() {
           disabled={!canNext()}
           className="liquid-glass rounded-full px-6 py-3 text-sm font-medium disabled:opacity-20 transition-opacity"
         >
-          {step === 4 ? '🚀 生成计划' : '下一步 →'}
+          {step === 5 ? '🚀 生成计划' : '下一步 →'}
         </button>
       </div>
     </div>

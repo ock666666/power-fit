@@ -53,11 +53,28 @@ const exLevel = (n: string) => (exAnnotations[n] || {}).level || 'basic';
 
 const shuffle = <T>(a: T[]) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
+type Split = 'ppl' | 'bro';
+
 // ── Goal configs ──
-const goalConfig: Record<string, { sets: number; repDisplay: string; rest: string; weekPattern: string[] }> = {
-  '增肌': { sets: 4, repDisplay: '6-12次', rest: '90-120秒', weekPattern: ['胸+三头','背+二头','腿+肩','休息','胸+三头','背+二头','腿+肩'] },
-  '减脂': { sets: 3, repDisplay: '15-20次', rest: '30-45秒', weekPattern: ['全身','上肢','下肢','全身','休息','全身','休息'] },
-  '塑形': { sets: 3, repDisplay: '12-15次', rest: '60秒', weekPattern: ['推','拉','腿','推','拉','腿','休息'] },
+const goalConfig: Record<string, {
+  sets: number; repDisplay: string; rest: string;
+  ppl: string[]; bro: string[];
+}> = {
+  '增肌': {
+    sets: 4, repDisplay: '6-12次', rest: '90-120秒',
+    ppl:  ['推','拉','腿','休息','推','拉','腿'],
+    bro: ['胸','背','肩','手臂','腿','休息','休息'],
+  },
+  '减脂': {
+    sets: 3, repDisplay: '15-20次', rest: '30-45秒',
+    ppl:  ['全身','上肢','下肢','全身','休息','全身','休息'],
+    bro: ['全身','上肢','下肢','全身','休息','全身','休息'],
+  },
+  '塑形': {
+    sets: 3, repDisplay: '12-15次', rest: '60秒',
+    ppl:  ['推','拉','腿','推','拉','腿','休息'],
+    bro: ['胸','背','肩','手臂','腿','休息','休息'],
+  },
 };
 
 // ── Day-name → muscle groups ──
@@ -71,6 +88,11 @@ const dayMuscleMap: Record<string, { groups: string[]; primary: string }> = {
   '推': { groups: ['chest','shoulders','arms'], primary: 'chest' },
   '拉': { groups: ['back','arms'], primary: 'back' },
   '腿': { groups: ['legs','glutes','abs'], primary: 'legs' },
+  // 五分化
+  '胸': { groups: ['chest'], primary: 'chest' },
+  '背': { groups: ['back'], primary: 'back' },
+  '肩': { groups: ['shoulders'], primary: 'shoulders' },
+  '手臂': { groups: ['arms'], primary: 'arms' },
   '臀': { groups: ['glutes'], primary: 'glutes' },
   '臀+腿': { groups: ['glutes','legs'], primary: 'glutes' },
   '臀+核心': { groups: ['glutes','abs'], primary: 'glutes' },
@@ -83,8 +105,8 @@ const experienceConfig: Record<string, { allowedLevels: string[]; allowedDiff: s
 };
 
 // ── Schedule generation ──
-function getWeeklySchedule(goal: string, days: number, selectedDays: number[]): (string | null)[] {
-  const pattern = goalConfig[goal].weekPattern.filter((d) => d !== '休息');
+function getWeeklySchedule(goal: string, days: number, selectedDays: number[], split: Split): (string | null)[] {
+  const pattern = goalConfig[goal][split].filter((d) => d !== '休息');
   const seq: string[] = [];
   for (let i = 0; i < days; i++) seq.push(pattern[i % pattern.length]);
   const week: (string | null)[] = Array(7).fill(null);
@@ -93,15 +115,38 @@ function getWeeklySchedule(goal: string, days: number, selectedDays: number[]): 
 }
 
 function selfCheckSchedule(week: (string | null)[]): (string | null)[] {
+  // Count muscle group frequency EXCLUDING arms (recovers fast)
   const freq: Record<string, number> = {};
   for (const focus of week) {
     if (!focus) continue;
     const info = dayMuscleMap[focus];
     if (!info) continue;
-    for (const g of info.groups) freq[g] = (freq[g] || 0) + 1;
+    for (const g of info.groups) {
+      if (g === 'arms') continue; // arms recovers fast, don't over-correct
+      freq[g] = (freq[g] || 0) + 1;
+    }
   }
-  const overused = Object.entries(freq).filter(([_, c]) => c > 3).map(([g]) => g);
+
+  // Check big muscle overuse (>4 per week)
+  const overused = Object.entries(freq).filter(([_, c]) => c > 4).map(([g]) => g);
+
+  // Adjacent conflict: same focus on consecutive days
+  for (let d = 0; d < week.length - 1; d++) {
+    if (week[d] && week[d] === week[d + 1]) {
+      // Swap with a rest day or find an alternative
+      const info = dayMuscleMap[week[d]!];
+      if (info) {
+        const alt = Object.keys(dayMuscleMap).find((f) => {
+          const fi = dayMuscleMap[f];
+          return fi && fi.primary !== info.primary && !fi.groups.some((g) => info.groups.includes(g));
+        });
+        if (alt && alt !== week[d]) { week[d + 1] = alt; }
+      }
+    }
+  }
+
   if (overused.length === 0) return week;
+
   const allFocuses = Object.keys(dayMuscleMap);
   for (const mg of overused) {
     let fixed = 0;
@@ -163,7 +208,7 @@ function isFemaleBannedArm(name: string) {
 function selectExercisesForDay(
   focusName: string, pool: Record<string, Exercise[]>,
   expCfg: { allowedLevels: string[] }, gCfg: { sets: number },
-  gender: string,
+  gender: string, split: Split,
 ) {
   const dayInfo = dayMuscleMap[focusName];
   if (!dayInfo) return [];
@@ -247,13 +292,16 @@ function selectExercisesForDay(
   const remaining: (Exercise & { muscleId: string })[] = [];
   for (const g of groups) remaining.push(...avail(g).filter((e) => !used.has(e.name)));
   shuffle(remaining);
-  const target = Math.min(6, Math.max(4, groups.length + 2));
+  const isBro = split === 'bro';
+  const maxEx = isBro ? 4 : 6;
+  const minEx = isBro ? 3 : 4;
+  const target = Math.min(maxEx, Math.max(minEx, groups.length + (isBro ? 1 : 2)));
   for (const ex of remaining) { if (selected.length >= target) break; add(ex, '辅助'); }
 
-  if (selected.length < 4) {
+  if (selected.length < minEx) {
     const more = avail(primary).filter((e) => !used.has(e.name));
     shuffle(more);
-    for (const ex of more) { if (selected.length >= 4) break; add(ex, '辅助'); }
+    for (const ex of more) { if (selected.length >= minEx) break; add(ex, '辅助'); }
   }
 
   return selected;
@@ -267,6 +315,7 @@ export interface AIState {
   selectedDays: number[];
   experience: string;
   equipment: string[];
+  split: Split;
 }
 
 export function getDefaultDays(count: number): number[] {
@@ -279,7 +328,7 @@ export function getDefaultDays(count: number): number[] {
 }
 
 export function generateAIPlan(state: AIState): WeekPlan {
-  const { goal, days, gender } = state;
+  const { goal, days, gender, split } = state;
   const gCfg = goalConfig[goal];
   const adjCfg = gender === '女' ? { ...gCfg, sets: 3, repDisplay: '12-15次', rest: '60-90秒' } : gCfg;
   const expCfg = experienceConfig[state.experience];
@@ -287,12 +336,12 @@ export function generateAIPlan(state: AIState): WeekPlan {
 
   let schedule = gender === '女'
     ? getFemaleSchedule(days, state.selectedDays)
-    : getWeeklySchedule(goal, days, state.selectedDays);
+    : getWeeklySchedule(goal, days, state.selectedDays, split);
   schedule = gender === '女' ? schedule : selfCheckSchedule(schedule);
 
   const weekPlan = schedule.map((focus, dayIdx) => {
     if (!focus) return { dayIdx, focus: '', totalSets: 0, exercises: [] as PlanExercise[] };
-    const exercises = selectExercisesForDay(focus, pool, expCfg, adjCfg, gender);
+    const exercises = selectExercisesForDay(focus, pool, expCfg, adjCfg, gender, split);
     const totalSets = exercises.reduce((s, e) => s + e.assignedSets, 0);
     return {
       dayIdx,
